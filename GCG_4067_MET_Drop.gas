@@ -1,0 +1,92 @@
+Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Created for Metko by SKT on 11/10/14
+'Takes the cost from the part selected on the inventory master screen and will use that cost
+'Uses Hook 29651 Part change hook
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sPart.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.iCost.Declare(Float)
+'Put part in proper format
+F.Intrinsic.String.GSSPartString(V.Passed.000004,V.Passed.000033,V.Local.sPart)
+
+F.Intrinsic.Control.If(V.Caller.Hook,=,29651)
+	F.ODBC.Connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+	'get the cost of part from inventory Master
+	F.Intrinsic.String.Concat("Select Amt_Cost from Inventory_Mstr where Part = '",V.Local.sPart.Trim,"'",V.Local.sSql)
+	F.ODBC.Connection!conx.OpenLocalRecordsetRO("rst",V.Local.sSql)
+	V.Local.iCost.Set(V.ODBC.conx!rst.FieldValTrim!Amt_Cost)
+	F.ODBC.conx!rst.Close
+	F.ODBC.Connection!conx.Close
+	'Set fields on drop screen
+	V.Passed.000010.Set(1)
+	V.Passed.000011.Set(1)
+	V.Passed.000013.Set(V.Local.iCost)
+	V.Passed.000012.Set(100)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.Caller.Hook,=,29652)
+F.ODBC.Connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+	'get the cost of part from inventory Master
+	F.Intrinsic.String.Concat("Select Amt_Cost from Inventory_Mstr where Part = '",V.Local.sPart.Trim,"'",V.Local.sSql)
+	F.ODBC.Connection!conx.OpenLocalRecordsetRO("rst",V.Local.sSql)
+	V.Local.iCost.Set(V.ODBC.conx!rst.FieldValTrim!Amt_Cost)
+	F.ODBC.conx!rst.Close
+	F.ODBC.Connection!conx.Close
+	'Set fields on drop screen
+'	V.Passed.000010.Set(1)
+'	V.Passed.000011.Set(1)
+	V.Passed.000013.Set(V.Local.iCost)
+	V.Passed.000012.Set(100)
+	V.Passed.777777.Set(1)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4067_MET_Drop.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Main.End
+
+Program.Sub.Unload.Start
+F.Intrinsic.Control.SetErrorHandler("Unload_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Unload_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_MET_Drop.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Unload.End
+
+Program.Sub.Comments.Start
+${$0$}$GCG_4067_MET_Drop$}$SKT$}$9/26/2014
+${$1$}$$}$$}$1$}$29652$}$JBS0076A-FRACTION-HOOK$}$5/19/2016 9:26:02 AM$}$(Program: JB0076GI; Screen: JBS0076A)
+
+${$1$}$$}$$}$0$}$29651$}$JBS0076A-PART-CHANGE-HOOK$}$5/19/2016 9:25:16 AM$}$(Program: JB0076GI              ; Screen: JBS0076A)
+
+Program.Sub.Comments.End
+
